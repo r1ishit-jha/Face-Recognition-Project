@@ -1,83 +1,103 @@
-# Real Time Group Face Recognition Using FaceNet
+Real Time Group Face Recognition Using FaceNet
+A Python webcam application that recognizes enrolled people and labels rejected matches as unidentified. It supports single-person enrollment and recognition of multiple enrolled members.
+The project uses MTCNN for face detection and a frozen, pretrained InceptionResnetV1 encoder from facenet-pytorch to extract 512-dimensional face embeddings. It does not train FaceNet from scratch.
+Team
+Member	Student ID	Enrollment number
+Neel Jeswani	KU2407U145	202407020140
+Bhavishya Sharma	KU2407U032	202407020032
+Priyanshu Mahapatra	KU2407U175	202407020166
+Ved Soni	KU2407U211	202407020201
 
-# HOW TO RUN - 
+
+B.Tech CSE, Semester V, Section D — Karnavati University.
+Working demonstration
+The local webcam demonstration displayed the enrolled label Rishit Jha. Two screenshots recorded displayed processing rates of 12.2 and 12.5 FPS. These are individual observations, not an average benchmark or an accuracy measurement. Held-out recognition accuracy and unknown-person rejection rates have not yet been reported.
+Report authors and enrolled identities are separate: adding a name to this README does not enroll that person in the model.
+Run the saved model on Windows
+Requirements: Python 3.11, a webcam, and a desktop session. Internet is needed to install dependencies and download pretrained encoder weights on first use. A GPU is optional.
+Download and extract the repository, then open PowerShell or the VS Code terminal in the folder containing Group_x_1.py and requirements.txt.
+Before running, confirm that both saved-model files exist:
+- outputs/model.json
+- outputs/classifier.npz
+These must come from the same successful training run. Raw training photographs are not required to run the saved model.
+Run each command on its own line:
 py -3.11 -m venv .venv311
 .\.venv311\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv311\Scripts\python.exe Group_x_1.py live
+No environment activation is required. After the initial setup, start the application with only:
+.\.venv311\Scripts\python.exe Group_x_1.py live
+Do not run train just to view the existing demo: training replaces the saved model. The saved model recognizes its enrolled identities; new users must enroll their own faces to be recognized by name.
+Webcam controls
+- Q: close the webcam window.
+- S: save an annotated screenshot in outputs.
+- Green rectangles and names indicate accepted matches.
+- Red rectangles with unidentified indicate rejected matches.
+If the default camera does not open:
+.\.venv311\Scripts\python.exe Group_x_1.py live --camera 1
+To force CPU processing:
+.\.venv311\Scripts\python.exe Group_x_1.py live --device cpu
+Enroll yourself or add members
+Back up outputs/model.json and outputs/classifier.npz before retraining. Keep existing members' training and validation images if you want to retain those members when training a new model.
+Replace Your Name below with the person's actual name. Use the same spelling in every split.
+.\.venv311\Scripts\python.exe Group_x_1.py capture --name "Your Name" --split train --count 60
+.\.venv311\Scripts\python.exe Group_x_1.py capture --name "Your Name" --split validate --count 20
+.\.venv311\Scripts\python.exe Group_x_1.py capture --name "Your Name" --split test --count 20
+Record train, validation and test images in separate sessions with varied lighting, poses and backgrounds. Do not reuse the same photos across splits. These counts are suggested targets, not measured dataset totals.
+Capture consenting nonmembers for rejection calibration and evaluation:
+.\.venv311\Scripts\python.exe Group_x_1.py capture --name unidentified --split validate --count 40
+.\.venv311\Scripts\python.exe Group_x_1.py capture --name unidentified --split test --count 40
+Use different unknown people for validation and testing where possible. Never place unidentified images in data/train. Validation must contain every enrolled identity plus unidentified. The program requires at least five usable training images per identity; more varied images are recommended.
+Import existing photos
+You can import JPG/PNG photos instead of recording everyone on the same webcam:
+.\.venv311\Scripts\python.exe Group_x_1.py import-images --name "Neel Jeswani" --split train --source "C:\FacePhotos\Neel\train"
+.\.venv311\Scripts\python.exe Group_x_1.py import-images --name "Neel Jeswani" --split validate --source "C:\FacePhotos\Neel\validate"
+.\.venv311\Scripts\python.exe Group_x_1.py import-images --name "Neel Jeswani" --split test --source "C:\FacePhotos\Neel\test"
+Replace the paths with real folders on your computer. Use separate photos for each split and repeat for each person. Face extraction occurs during training or evaluation; importing an image does not guarantee that its face will be usable.
+Train and evaluate
+After preparing the dataset:
+.\.venv311\Scripts\python.exe Group_x_1.py train
+.\.venv311\Scripts\python.exe Group_x_1.py evaluate
+.\.venv311\Scripts\python.exe Group_x_1.py live
+.\.venv311\Scripts\python.exe Group_x_1.py results-report
+- One enrolled identity: builds a normalized mean face template and calibrates a distance threshold using known and unknown validation images. No classifier epochs are needed.
+- Two or more identities: trains a small linear classifier on frozen embeddings, selects its checkpoint using known-member validation loss, and calibrates probability and distance thresholds.
+- Evaluation: uses a separate test set. Do not use test results to tune thresholds.
+- Results report: requires evaluation outputs from the current saved model.
+An optional software check can be run with:
+.\.venv311\Scripts\python.exe Group_x_1.py selftest
+Synthetic checks test software logic; they do not measure recognition accuracy.
+Output files
+All generated files are stored in outputs.
+File	Purpose
+model.json	Enrolled labels, operating mode, thresholds and model metadata
+classifier.npz	Saved recognition arrays, including face centroids
+history.json	Classifier training history; empty in single-person mode
+validation_distances.png	Single-person validation distances and threshold
+training_curves.png	Multi-person classifier learning curves
+metrics.json	Evaluation metrics
+predictions.csv	Predictions for usable test images, including rejected identity matches
+confusion_matrix.csv and confusion_matrix.png	Evaluation confusion matrix
+sample_predictions.png	Example test predictions
+*_rejected.json	Image decoding or face-extraction failures
+live_*.png	Screenshots saved with S
+Measured_Results.docx	Results document generated after evaluation
 
 
-## Delivery status
-The source and reports are prepared. No group photographs were supplied. A trained group model, actual facial-recognition metrics, webcam screenshots, and a genuine group dataset therefore cannot be included. Six synthetic-vector software checks were executed successfully; these do not establish recognition quality. The webcam and pretrained-encoder integration must be run on the demo laptop. The code does not train FaceNet from scratch: it freezes a pretrained FaceNet-style InceptionResnetV1 encoder and trains a small identity classifier. The paper's original architecture and embedding size are different from this implementation.
+Files appear only after the corresponding command succeeds. Count face-extraction failures separately from recognition errors. Live processing FPS differs from dataset evaluation timing.
+Troubleshooting
+Problem	Fix
+Python 3.11 is not found	Install Python 3.11, reopen the terminal, and check py -3.11 --version.
+NumPy installation fails under Python 3.13	Use the Python 3.11 environment and commands above for the pinned requirements.
+model.json or classifier.npz is missing	Obtain both matching files from the trained demo, or prepare the dataset and run train successfully.
+Cannot open Group_x_1.py	Check the current folder and filename. Remove any extra space before .py.
+No usable validation images	Capture known-person and unknown-person validation images, then review rejected-image logs.
+Old error saying two named members are required	Replace the script with the revised version supporting single-person enrollment.
+Camera fails	Close other camera applications, check camera access, or try --camera 1.
 
-## Install (Windows, Python 3.11 recommended)
-Open a terminal in this folder:
 
-```bat
-py -3.11 -m venv .venv
-.venv\Scripts\activate
-python -m pip install -r requirements.txt
-python Group_x_1.py selftest
-```
-
-Linux/macOS: use `python3.11 -m venv .venv`, then `source .venv/bin/activate`.
-The pinned stack is intended for Python 3.10/3.11. It was not installed end-to-end in the authoring environment. Use a clean environment to avoid Torch/NumPy conflicts. First encoder use downloads pretrained weights (~107 MB); internet is required then. After caching weights, local inference can run offline. GPU is optional; `--device cpu` forces CPU. If camera 0 fails, try `--camera 1`. A desktop GUI session is needed for webcam windows.
-
-## Collect your dataset
-Use only participants who agree to this project. Repeat these commands for all four members, replacing the name. Keep names exactly the same across splits. These are separate recording sessions: change the background/lighting or come back later before validation and test. Do not randomly split adjacent video frames.
-
-```bat
-python Group_x_1.py capture --name "Rishit Jha" --split train --count 60
-python Group_x_1.py capture --name "Rishit Jha" --split validate --count 20
-python Group_x_1.py capture --name "Rishit Jha" --split test --count 20
-```
-
-Repeat for the other three actual members. The program saves only frames containing exactly one confident face. Change pose, glasses if normally worn, distance and lighting between frames. Q stops early. It appends new files rather than overwriting previous sessions. The 60/20/20 plan gives 100 images per member and 400 member images total; these are targets, not measured counts.
-
-Collect consenting nonmembers too:
-
-```bat
-python Group_x_1.py capture --name unidentified --split validate --count 40
-python Group_x_1.py capture --name unidentified --split test --count 40
-```
-
-Use at least two nonmembers for validation and two DIFFERENT nonmembers for test (20 frames each). The code cannot verify that identities or capture sessions are disjoint; manage this yourself. Never put unidentified in train. With the suggested counts: 240 train + 120 validation + 120 test = 480 images, including unknown people. Exact file duplicates across splits are rejected automatically; near duplicates are not.
-
-## Train, test and demonstrate
-
-```bat
-python Group_x_1.py train
-python Group_x_1.py evaluate
-python Group_x_1.py live
-python Group_x_1.py results-report
-```
-
-Training selects the classifier epoch using known-member validation loss. It then selects probability/distance rejection thresholds using known and unknown validation images. The test set is never used to fit or tune the model. `--epochs 150` is the default ceiling; early stopping uses patience 15. Training only the 512-to-K classifier makes this suitable for a small enrollment dataset. No data augmentation is applied.
-
-In the webcam window, green labels indicate accepted members; red labels say `unidentified`. No detected face produces no identity label. Q quits. S saves an actual annotated screenshot in outputs. Softmax scores are not calibrated confidence probabilities. This is a classroom demonstration, not access control; it has no liveness or spoof detection.
-
-## Generated files
-- `outputs/classifier.npz`: trained linear head and member centroids.
-- `outputs/model.json`: class order, selected thresholds, counts and chosen epoch.
-- `outputs/history.json` and `training_curves.png`: real training history.
-- `outputs/metrics.json`: per-class precision/recall/F1, open-set accuracy and rejection rates.
-- `outputs/predictions.csv`: every accepted test image and its prediction.
-- `outputs/confusion_matrix.csv` and `.png`: row/column order is members followed by unidentified.
-- `outputs/sample_predictions.png`: first six actual test-image predictions.
-- `outputs/*_rejected.json`: detection/decoding failures, excluded from recognition metrics.
-- `outputs/live_*.png`: screenshots saved manually with S.
-- `outputs/Measured_Results.docx`: measured-results appendix generated after evaluation.
-
-Count rejected images as detection failures separately. The reported dataset-processing time includes image loading/detection/embedding, excludes model initialization, and is not webcam FPS. Live FPS is an approximate processing-loop measurement.
-
-## Submission
-The attached assignment specifies face recognition, a four-person group, a 3–4-page double-column Part I review and one runnable code file. The separate report template recommends 25–35 pages. Both report formats are supplied. The PDF says Semester V while the generic cover says VI; the project report uses Semester V. Its 2025 deadline conflicts with academic year 2026–27: check the actual LMS deadline.
-
-1. Fill the actual group number, three missing members and faculty details in the editable reports. Sign certificates/declarations only after review; no signature or faculty approval has been invented.
-2. Collect the real dataset and run all commands above. Review incorrect predictions and detection failures.
-3. Insert the generated results/graphs and at least five real test cases into Chapters 8–9, or append `Measured_Results.docx`. Include live screenshots. The current reports explicitly mark these results unmeasured.
-4. Change `Group_x_1.py` to your actual group number and rename the short review `Group_<number>_report_1.pdf`.
-5. Compress code, requirements, README, real data/train, data/validate, data/test and outputs into `Group_<number>_code.zip`. Include cached encoder weights if your demo laptop will have no internet and the weights are not already cached there.
-6. Review and understand the implementation, acknowledge assistance as required by your course, and submit one copy per group.
-
-; DeepFace uses strong alignment; DeepID learns identity features; FaceNet supports compact distance-based representations.
-- A confident classifier can still accept an unknown person. Thresholds reduce this risk, but do not eliminate it.
+Files to upload
+For the saved-model demo, include Group_x_1.py, requirements.txt, this README, and the matching outputs/model.json and outputs/classifier.npz files. Add the project report and demonstration screenshots if desired.
+Do not upload .venv, .venv311, Python caches or credentials. Original face photographs are optional for inference, but a separate test dataset is needed to reproduce evaluation. Obtain participants' permission before publicly sharing their images or face templates.
+Limitations
+Recognition depends on lighting, pose, image quality and enrollment diversity. Unknown-person rejection is imperfect. The system has no liveness or spoof detection and is intended for an educational demonstration, not security access control.
+The pretrained encoder is provided by the facenet-pytorch project. The local classifier or template is fitted to the enrolled dataset; the original FaceNet paper is not reproduced from scratch.
