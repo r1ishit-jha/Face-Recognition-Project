@@ -1,5 +1,10 @@
 # Real Time Group Face Recognition Using FaceNet
-RISHIT JHA | KU2407U181 | 202407020172 | CSE-D
+
+# HOW TO RUN - 
+py -3.11 -m venv .venv311
+.\.venv311\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv311\Scripts\python.exe Group_x_1.py live
+
 
 ## Delivery status
 The source and reports are prepared. No group photographs were supplied. A trained group model, actual facial-recognition metrics, webcam screenshots, and a genuine group dataset therefore cannot be included. Six synthetic-vector software checks were executed successfully; these do not establish recognition quality. The webcam and pretrained-encoder integration must be run on the demo laptop. The code does not train FaceNet from scratch: it freezes a pretrained FaceNet-style InceptionResnetV1 encoder and trains a small identity classifier. The paper's original architecture and embedding size are different from this implementation.
