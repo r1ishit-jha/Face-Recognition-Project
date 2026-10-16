@@ -1,0 +1,26 @@
+{
+  "mode": "single_person_centroid",
+  "probability_min": null,
+  "distance_max": 0.8998119831085205,
+  "validation_balanced_accept_reject": 1.0,
+  "classes": [
+    "Rishit Jha"
+  ],
+  "encoder": "InceptionResnetV1-vggface2",
+  "seed": 42,
+  "epochs_run": 0,
+  "best_epoch": null,
+  "raw_counts": {
+    "train": {
+      "Rishit Jha": 113
+    },
+    "validate": {
+      "Rishit Jha": 20,
+      "unidentified": 40
+    },
+    "test": {}
+  },
+  "usable_train": 111,
+  "usable_validation": 60,
+  "model_id": "1792145145580263200"
+}
