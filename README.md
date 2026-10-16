@@ -74,12 +74,5 @@ The attached assignment specifies face recognition, a four-person group, a 3–4
 5. Compress code, requirements, README, real data/train, data/validate, data/test and outputs into `Group_<number>_code.zip`. Include cached encoder weights if your demo laptop will have no internet and the weights are not already cached there.
 6. Review and understand the implementation, acknowledge assistance as required by your course, and submit one copy per group.
 
-## Quick viva
-- Detection locates faces; recognition identifies enrolled people.
-- FaceNet learns similarity representations using triplet loss in the original paper.
-- This implementation uses a pretrained 512-dimensional InceptionResnetV1 embedding and locally trains a softmax classifier with cross-entropy.
-- The encoder is frozen. Backpropagation updates only the linear head using Adam.
-- Unknown rejection requires BOTH a sufficient softmax score and a small distance to the predicted member's normalized centroid.
-- Validation chooses thresholds; untouched test images estimate performance.
-- PCA/Eigenfaces is cheap but sensitive to alignment; DeepFace uses strong alignment; DeepID learns identity features; FaceNet supports compact distance-based representations.
+; DeepFace uses strong alignment; DeepID learns identity features; FaceNet supports compact distance-based representations.
 - A confident classifier can still accept an unknown person. Thresholds reduce this risk, but do not eliminate it.
